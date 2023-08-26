@@ -9,12 +9,25 @@ export default function Home() {
   const [searchWord, setSearchWord] = useState("")
   const [loading, setLoading] = useState(false)
   const [summary, setSummary] = useState("")
+  const [gptResult, setGptResult] = useState("")
   const onClick = async () => {
     try {
       setLoading(true)
+
       const result = await pubmedRepository.findPaperInfoBySearchWords({
         searchWord,
       })
+      const gptResult = await gptRepository.chat({
+        messages: [
+          {
+            role: "user",
+            content: getSummarizePaperPrompt({ abstract: result[0].abstract }),
+          },
+        ],
+      })
+      console.log(gptResult)
+      setGptResult(gptResult.purpose ?? "")
+
       setSummary(result[0].abstract)
       console.log(summary)
     } catch (error) {
@@ -71,6 +84,7 @@ export default function Home() {
         )}
       </Flex>
       {summary && <Text>{summary}</Text>}
+      {gptResult && <Text>{gptResult}</Text>}
     </>
   )
 }
