@@ -1,8 +1,8 @@
 "use client"
 import { Button, Flex, Input, Text, Spinner } from "@chakra-ui/react"
 import { useState } from "react"
-import { pubmedRepository } from "./repositories/pubmed.repository"
-import { gptRepository } from "./repositories/gpt.repository"
+import { pubmedRepository } from "../repositories/pubmed.repository"
+import { gptRepository } from "../repositories/gpt.repository"
 import { getSummarizePaperPrompt } from "@/libs/open-ai/prompt/summarizePaperPrompt"
 
 export default function Home() {
