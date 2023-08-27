@@ -2,34 +2,35 @@
 import { Button, Flex, Input, Text, Spinner } from "@chakra-ui/react"
 import { useState } from "react"
 import { pubmedRepository } from "../repositories/pubmed.repository"
-import { gptRepository } from "../repositories/gpt.repository"
+import { gptRepository, ChatResponse } from "../repositories/gpt.repository"
 import { getSummarizePaperPrompt } from "@/libs/open-ai/prompt/summarizePaperPrompt"
+import { stringUtil } from "@/libs/util/string-util"
 
 export default function Home() {
-  const [searchWord, setSearchWord] = useState("")
+  const [searchWords, setSearchWords] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
-  const [summary, setSummary] = useState("")
-  const [gptResult, setGptResult] = useState("")
+  const [abstract, setAbstract] = useState("")
+  const [gptResult, setGptResult] = useState<ChatResponse | null>(null)
   const onClick = async () => {
     try {
       setLoading(true)
 
       const result = await pubmedRepository.findPaperInfoBySearchWords({
-        searchWord,
+        searchWords,
       })
+
       const gptResult = await gptRepository.chat({
         messages: [
           {
             role: "user",
-            content: getSummarizePaperPrompt({ abstract: result[0].abstract }),
+            content: getSummarizePaperPrompt({
+              abstract: result[0].abstract,
+            }),
           },
         ],
       })
-      console.log(gptResult)
-      setGptResult(gptResult.purpose ?? "")
-
-      setSummary(result[0].abstract)
-      console.log(summary)
+      setGptResult(gptResult)
+      setAbstract(result[0].abstract)
     } catch (error) {
       console.log(error)
     } finally {
@@ -58,8 +59,10 @@ export default function Home() {
         <Input
           placeholder="検索ワードを入力してください"
           width={"50%"}
-          value={searchWord}
-          onChange={(e) => setSearchWord(e.target.value)}
+          value={searchWords}
+          onChange={(e) =>
+            setSearchWords(stringUtil.splitCommasToArray(e.target.value))
+          }
           sx={{ marginRight: "20px" }}
           disabled={loading}
           focusBorderColor="teal.400"
@@ -68,7 +71,7 @@ export default function Home() {
           colorScheme="teal"
           size="md"
           onClick={onClick}
-          isDisabled={loading || searchWord === ""}
+          isDisabled={loading || searchWords.length === 0}
         >
           論文を要約する
         </Button>
@@ -83,8 +86,17 @@ export default function Home() {
           />
         )}
       </Flex>
-      {summary && <Text>{summary}</Text>}
-      {gptResult && <Text>{gptResult}</Text>}
+      {abstract && <Text>Abstract:{abstract}</Text>}
+      {gptResult && <Text>目的:{gptResult.purpose}</Text>}
+      {gptResult && <Text>研究デザイン:{gptResult.design}</Text>}
+      {gptResult && <Text>対象者:{gptResult.subjects}</Text>}
+      {gptResult && <Text>アウトカム:{gptResult.outcome}</Text>}
+      {gptResult && <Text>暴露:{gptResult.exposure}</Text>}
+      {gptResult && <Text>解析対象者:{gptResult.analysisSubjects}</Text>}
+      {gptResult && <Text>統計解析:{gptResult.statisticalMethods}</Text>}
+      {gptResult && <Text>交絡因子:{gptResult.confoundingFactors}</Text>}
+      {gptResult && <Text>結果:{gptResult.results}</Text>}
+      {gptResult && <Text>結論:{gptResult.conclusion}</Text>}
     </>
   )
 }
