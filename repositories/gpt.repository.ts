@@ -1,6 +1,6 @@
 import { ChatMessage } from "@/app/api/gpt/route"
 
-type ChatResponse = {
+export type ChatResponse = {
   purpose: string | null
   analysisSubjects: string | null
   conclusion: string | null
