@@ -13,6 +13,7 @@ import { pubmedRepository } from "../repositories/pubmed.repository"
 import { gptRepository, ChatResponse } from "../repositories/gpt.repository"
 import { getSummarizePaperPrompt } from "@/libs/open-ai/prompt/summarizePaperPrompt"
 import { stringUtil } from "@/libs/util/string-util"
+import { utils, writeFile } from "xlsx"
 
 export default function Home() {
   const [searchWords, setSearchWords] = useState<string[]>([])
@@ -42,7 +43,10 @@ export default function Home() {
           return res
         })
       )
-
+      const ws = utils.json_to_sheet(gptResponse)
+      const wb = utils.book_new()
+      utils.book_append_sheet(wb, ws)
+      writeFile(wb, "papper_summary.xlsx")
       setSummaries(gptResponse)
     } catch (error) {
       console.log(error)
@@ -101,12 +105,11 @@ export default function Home() {
       </Flex>
       {abstract && <Text>Abstract:{abstract}</Text>}
       {/* TODO:レイアウト修正 */}
+      {/* {summaries && <Text>`${summaries}`</Text>} */}
       {summaries &&
         summaries.map((s, i) => (
           <Box key={i}>
             <Flex>
-              {/* 研究タイトル */}
-              {/* URL */}
               <Text>目的:{s.purpose}</Text>
               <Text>研究デザイン:{s.design}</Text>
               <Text>対象者:{s.subjects}</Text>
