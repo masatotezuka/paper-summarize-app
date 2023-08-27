@@ -1,5 +1,13 @@
 "use client"
-import { Button, Flex, Input, Text, Spinner } from "@chakra-ui/react"
+import {
+  Button,
+  Flex,
+  Input,
+  Text,
+  Spinner,
+  Divider,
+  Box,
+} from "@chakra-ui/react"
 import { useState } from "react"
 import { pubmedRepository } from "../repositories/pubmed.repository"
 import { gptRepository, ChatResponse } from "../repositories/gpt.repository"
@@ -10,7 +18,7 @@ export default function Home() {
   const [searchWords, setSearchWords] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [abstract, setAbstract] = useState("")
-  const [gptResult, setGptResult] = useState<ChatResponse | null>(null)
+  const [summaries, setSummaries] = useState<ChatResponse[] | null>(null)
   const onClick = async () => {
     try {
       setLoading(true)
@@ -19,18 +27,23 @@ export default function Home() {
         searchWords,
       })
 
-      const gptResult = await gptRepository.chat({
-        messages: [
-          {
-            role: "user",
-            content: getSummarizePaperPrompt({
-              abstract: result[0].abstract,
-            }),
-          },
-        ],
-      })
-      setGptResult(gptResult)
-      setAbstract(result[0].abstract)
+      const gptResponse = await Promise.all(
+        result.map(async (paper) => {
+          const res = await gptRepository.chat({
+            messages: [
+              {
+                role: "user",
+                content: getSummarizePaperPrompt({
+                  abstract: paper.abstract,
+                }),
+              },
+            ],
+          })
+          return res
+        })
+      )
+
+      setSummaries(gptResponse)
     } catch (error) {
       console.log(error)
     } finally {
@@ -87,16 +100,27 @@ export default function Home() {
         )}
       </Flex>
       {abstract && <Text>Abstract:{abstract}</Text>}
-      {gptResult && <Text>目的:{gptResult.purpose}</Text>}
-      {gptResult && <Text>研究デザイン:{gptResult.design}</Text>}
-      {gptResult && <Text>対象者:{gptResult.subjects}</Text>}
-      {gptResult && <Text>アウトカム:{gptResult.outcome}</Text>}
-      {gptResult && <Text>暴露:{gptResult.exposure}</Text>}
-      {gptResult && <Text>解析対象者:{gptResult.analysisSubjects}</Text>}
-      {gptResult && <Text>統計解析:{gptResult.statisticalMethods}</Text>}
-      {gptResult && <Text>交絡因子:{gptResult.confoundingFactors}</Text>}
-      {gptResult && <Text>結果:{gptResult.results}</Text>}
-      {gptResult && <Text>結論:{gptResult.conclusion}</Text>}
+      {/* TODO:レイアウト修正 */}
+      {summaries &&
+        summaries.map((s, i) => (
+          <Box key={i}>
+            <Flex>
+              {/* 研究タイトル */}
+              {/* URL */}
+              <Text>目的:{s.purpose}</Text>
+              <Text>研究デザイン:{s.design}</Text>
+              <Text>対象者:{s.subjects}</Text>
+              <Text>アウトカム:{s.outcome}</Text>
+              <Text>暴露:{s.exposure}</Text>
+              <Text>解析対象者:{s.analysisSubjects}</Text>
+              <Text>統計解析:{s.statisticalMethods}</Text>
+              <Text>交絡因子:{s.confoundingFactors}</Text>
+              <Text>結果:{s.results}</Text>
+              <Text>結論:{s.conclusion}</Text>
+            </Flex>
+            <Divider border={"1px solid #ccc"} />
+          </Box>
+        ))}
     </>
   )
 }
