@@ -7,8 +7,9 @@ export const getSummarizePaperPrompt = ({ abstract }: { abstract: string }) => {
 
 # タスクの順序
 1. Abstractを読む
-2. 論文を要約する
-3. 日本語でJSON形式で出力する
+2. 日本語に翻訳する
+3. 自然な日本語で要約する
+4. 日本語でJSON形式で出力する
 
 # Abstract
 ${abstract}
