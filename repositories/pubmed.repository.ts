@@ -1,4 +1,4 @@
-type ScrapingResponse = {
+export type ScrapingResponse = {
   title: string
   abstract: string
   pubmedUrl: string
