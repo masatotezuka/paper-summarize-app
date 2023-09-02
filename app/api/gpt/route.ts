@@ -1,7 +1,7 @@
 import OpenAI from "openai"
 import { NextResponse } from "next/server"
 export const openAI = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 })
 export type ChatMessage =
   OpenAI.Chat.Completions.CreateChatCompletionRequestMessage
