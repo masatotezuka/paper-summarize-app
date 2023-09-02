@@ -187,7 +187,7 @@ export default function Home() {
               {summaries.map((summary, i) => (
                 <Tr key={i}>
                   <Td
-                    minWidth={"100px"}
+                    minWidth={"200px"}
                     whiteSpace={"normal"}
                     color={"blue.800"}
                     sx={{
