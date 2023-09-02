@@ -1,4 +1,4 @@
-import { ChatMessage } from "@/app/api/gpt/route"
+import { ChatMessage } from "../libs/open-ai/prompt/config"
 
 export type ChatResponse = {
   purpose: string | null

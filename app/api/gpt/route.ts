@@ -1,10 +1,5 @@
-import OpenAI from "openai"
+import { openAI } from "@/libs/open-ai/prompt/config"
 import { NextResponse } from "next/server"
-export const openAI = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-export type ChatMessage =
-  OpenAI.Chat.Completions.CreateChatCompletionRequestMessage
 
 export async function POST(req: Request) {
   try {
