@@ -11,11 +11,11 @@ export const pubmedRepository = {
   }: {
     searchWords: string[]
   }): Promise<ScrapingResponse[]> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_PUBMED_SCRAPING_URL}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/pubmed`, {
       method: "POST",
       body: JSON.stringify({ searchWords }),
     })
-    const data: ScrapingResponse[] = await res.json()
-    return data
+    const data = await res.json()
+    return data.result
   },
 }
