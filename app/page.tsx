@@ -16,18 +16,15 @@ import {
 import { useState } from "react"
 import {
   pubmedRepository,
-  ScrapingResponse,
+  FetchSummaryResult,
 } from "../repositories/pubmed.repository"
 import { gptRepository, ChatResponse } from "../repositories/gpt.repository"
 import { getSummarizePaperPrompt } from "@/libs/open-ai/prompt/summarizePaperPrompt"
-import { stringUtil } from "@/libs/util/string-util"
 import { utils, writeFile } from "xlsx"
-import Link from "next/link"
 
-type Summary = ChatResponse & ScrapingResponse
-
+type Summary = ChatResponse & FetchSummaryResult
 export default function Home() {
-  const [searchWords, setSearchWords] = useState<string[]>([])
+  const [searchWords, setSearchWords] = useState<string>("")
   const [loading, setLoading] = useState(false)
   const [summaries, setSummaries] = useState<Summary[] | null>(null)
   const [hasError, setHasError] = useState(false)
@@ -37,27 +34,28 @@ export default function Home() {
         setHasError(false)
       }
       setLoading(true)
-
-      const result = await pubmedRepository.findPaperInfoBySearchWords({
-        searchWords,
-      })
-
+      const res = await pubmedRepository.search({ searchWords })
       const gptResponse = await Promise.all(
-        result.map(async (paper) => {
-          const res = await gptRepository.chat({
-            messages: [
-              {
-                role: "user",
-                content: getSummarizePaperPrompt({
-                  abstract: paper.abstract,
-                }),
-              },
-            ],
+        res.pmidList.map(async (id) => {
+          const fetchResult = await pubmedRepository.fetchSummary({
+            id,
           })
-          return { ...res, ...paper }
+          const res =
+            fetchResult &&
+            (await gptRepository.chat({
+              messages: [
+                {
+                  role: "user",
+                  content: getSummarizePaperPrompt({
+                    abstract: fetchResult.abstract,
+                  }),
+                },
+              ],
+            }))
+          return { ...res, ...fetchResult }
         })
       )
-      setSummaries(gptResponse)
+      setSummaries(gptResponse.filter((res) => Object.keys(res).length !== 0))
     } catch (error) {
       setHasError(true)
       console.log(error)
@@ -75,13 +73,14 @@ export default function Home() {
     utils.book_append_sheet(wb, ws)
     writeFile(wb, "papper_summary.xlsx")
   }
+  const showSummaries = !loading && summaries && summaries.length !== 0
 
   return (
     <>
       <Text
         fontSize="4xl"
         textAlign="center"
-        marginTop="150px"
+        marginTop="50px"
         fontWeight={"bold"}
       >
         Paper Summarize App
@@ -98,9 +97,7 @@ export default function Home() {
           placeholder="検索ワードは入力してください（複数ワードの場合はカンマで区切ってください）"
           width={"50%"}
           value={searchWords}
-          onChange={(e) =>
-            setSearchWords(stringUtil.splitCommasToArray(e.target.value))
-          }
+          onChange={(e) => setSearchWords(e.target.value)}
           sx={{ marginRight: "20px" }}
           disabled={loading}
           focusBorderColor="teal.400"
@@ -155,10 +152,24 @@ export default function Home() {
           </Text>
         </Flex>
       )}
-      {!loading && summaries && summaries.length !== 0 && (
-        <TableContainer overflowY={"scroll"} overflowX={"scroll"}>
+      {showSummaries && (
+        <TableContainer
+          sx={{
+            height: "70vh",
+          }}
+          overflowY={"scroll"}
+          overflowX={"scroll"}
+        >
           <Table variant="simple" size={"sm"}>
-            <Thead position={"sticky"} top={-1} zIndex={"docked"}>
+            <Thead
+              sx={{
+                position: "sticky",
+                top: 0,
+                zIndex: 100,
+                backgroundColor: "white",
+                marginBottom: "20px",
+              }}
+            >
               <Tr>
                 <Th
                   textAlign={"center"}
@@ -189,17 +200,24 @@ export default function Home() {
                   <Td
                     minWidth={"200px"}
                     whiteSpace={"normal"}
-                    color={"blue.800"}
                     sx={{
                       position: "sticky",
                       backgroundColor: "white",
                       left: 0,
+
                       "&:hover": {
                         textDecoration: "underline",
                       },
                     }}
                   >
-                    <Link href={summary.pubmedUrl}>{summary.title}</Link>
+                    <Text
+                      onClick={() => window.open(summary.url, "_blank")}
+                      sx={{
+                        cursor: "pointer",
+                      }}
+                    >
+                      {summary.title}
+                    </Text>
                   </Td>
                   <Td minWidth={"300px"} whiteSpace={"normal"}>
                     {summary.purpose ?? "-"}
