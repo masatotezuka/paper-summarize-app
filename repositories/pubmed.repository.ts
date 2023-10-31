@@ -1,5 +1,5 @@
 export type SearchResult = {
-  ids: number[]
+  pmidList: number[]
 }
 
 export type FetchSummaryResult = {
@@ -25,8 +25,6 @@ export const pubmedRepository = {
   },
 
   async fetchSummary({ id }: { id: number }): Promise<FetchSummaryResult> {
-    console.log(id)
-
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/pubmed/efetch`,
       {
