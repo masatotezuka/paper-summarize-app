@@ -94,7 +94,7 @@ export default function Home() {
         }}
       >
         <Input
-          placeholder="検索ワードは入力してください（複数ワードの場合はカンマで区切ってください）"
+          placeholder="検索ワードを入力してください"
           width={"50%"}
           value={searchWords}
           onChange={(e) => setSearchWords(e.target.value)}
