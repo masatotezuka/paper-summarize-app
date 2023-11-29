@@ -1,0 +1,13 @@
+version: "3"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: paper-summarize-app
+    volumes:
+      - .:/usr/local/app
+    working_dir: /usr/local/app
+    ports:
+      - "3000:3000"
+    entrypoint: ["/bin/sh", "-c", "pnpm install && pnpm dev"]
