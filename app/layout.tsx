@@ -4,6 +4,7 @@ import Main from "./Main"
 
 export const metadata: Metadata = {
   title: "Paper Summarize App",
+  description: "論文を要約するアプリです。",
 }
 
 export default function RootLayout({
