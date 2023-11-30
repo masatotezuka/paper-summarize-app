@@ -115,7 +115,7 @@ export default function Home() {
           size="md"
           margin={"0px 20px"}
           onClick={onClickDownload}
-          isDisabled={loading || searchWords.length === 0}
+          isDisabled={loading || searchWords.length === 0 || !showSummaries}
         >
           ダウンロード
         </Button>
